@@ -133,7 +133,7 @@ async function rerunFailedJobs(runs) {
             core.info("The workflow is running, try again later");
             continue;
         }
-        if (run.conclusion == "failure") {
+        if (run.conclusion == "failure" || run.conclusion == "cancelled") {
             await oc.rest.actions.reRunWorkflowFailedJobs({
                 ...github.context.repo,
                 run_id: run.run_id
