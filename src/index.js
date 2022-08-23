@@ -193,7 +193,7 @@ function checkPermission(comment, auther, users_org) {
     if (comment.user.login == auther.login) {
         return true;
     }
-    for (const user of users_org) {
+    for (const user of Array.from(users_org)) {
         core.info(user.login);
         if (comment.user.login == user.login) {
             return true;
