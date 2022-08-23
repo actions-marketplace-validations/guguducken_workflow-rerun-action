@@ -108,6 +108,7 @@ async function getLastCommitRuns() {
 
 async function rerunFailedJobs(comment) {
     const runs = await getLastCommitRuns();
+    core.info(runs);
     for (let i = 0; i < runs.length; i++) {
         const run = runs[i];
         await oc.rest.actions.reRunWorkflowFailedJobs(
@@ -193,7 +194,7 @@ function checkPermission(comment, auther, users_org) {
     if (comment.user.login == auther.login) {
         return true;
     }
-    for (const user of Array.from(users_org)) {
+    for (const user of users_org) {
         core.info(user.login);
         if (comment.user.login == user.login) {
             return true;
