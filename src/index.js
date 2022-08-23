@@ -121,11 +121,17 @@ async function getLastCommitRunJobs() {
 async function rerunFailedJobs(comment) {
     const jobs = await getLastCommitRunJobs();
     for (const job of jobs) {
-        core.info(JSON.stringify(job));
+        if (job.status != "completed" && job.conclusion == "failure") {
+            core.info("Rerun job: " + job.name);
+            await oc.rest.actions.reRunJobForWorkflowRun({
+                ...github.context.repo,
+                job_id: job.id
+            });
+        }
     }
 
-    // let message = ">" + comment.body + "\n\n" + "All failed jobs are rerun ----- @" + admin;
-    // await setMessageAndEmoji(comment.id, message, "laugh");
+    let message = ">" + comment.body + "\n\n" + "All failed jobs are rerun ----- @" + admin;
+    await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
 async function rerun(comment, commands) {
