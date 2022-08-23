@@ -1,8 +1,14 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+const http_client = require('@actions/http-client');
 
 const github_token = core.getInput("action-token", { required: true });
 const admin = core.getInput("user", { required: true });
+const http = new http_client.HttpClient(
+    {
+        userAgent: "workflow-rerun-action"
+    }
+);
 
 const oc = github.getOctokit(github_token);
 
@@ -48,12 +54,9 @@ async function run() {
             core.info("This comment is not " + commands[0] + ", so skip this command");
             return;
         }
-        core.info(commands);
 
         //get users of organizations
         const users_org = await getOrgMembersForAuthenticatedUser();
-
-        core.info(JSON.stringify(users_org));
 
         //get the auther of this pr
         const auther = await getAuth();
@@ -93,6 +96,7 @@ async function getLastCommitRuns() {
     let s = new Set();
     let ans = new Array();
     for (const workflow of workflow_runs) {
+        // let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
         if (workflow.head_sha == sha && !s.has(workflow.name)) {
             s.add(workflow.name);
             ans.push(workflow);
@@ -104,7 +108,7 @@ async function getLastCommitRuns() {
 async function rerunFailedJobs(comment) {
     const runs = await getLastCommitRuns();
     for (const run of runs) {
-        core.info("rerun: " + run.name + " rerun id: " + run.id + "rerun status: " + run.status);
+        core.info("rerun: " + JSON.stringify(run));
         await oc.rest.actions.reRunWorkflowFailedJobs(
             {
                 ...github.context.repo,
