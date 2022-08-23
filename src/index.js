@@ -104,7 +104,7 @@ async function getLastCommitRuns() {
 async function rerunFailedJobs(comment) {
     const runs = await getLastCommitRuns();
     for (const run of runs) {
-        core.info("rerun: " + run.name);
+        core.info("rerun: " + run.name + " rerun id: " + run.id);
         await oc.rest.actions.reRunWorkflowFailedJobs(
             {
                 ...github.context.repo,
