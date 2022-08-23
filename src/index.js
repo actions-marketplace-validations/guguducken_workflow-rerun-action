@@ -54,9 +54,9 @@ async function run() {
 
 
         if (!checkPermission(comment, auther, users_org)) {
-            failedRerun(comment);
+            await failedRerun(comment);
         }
-        successRerun(comment, commands);
+        await successRerun(comment, commands);
 
 
     } catch (error) {
@@ -64,7 +64,7 @@ async function run() {
     }
 }
 
-function getLastCommitRuns() {
+async function getLastCommitRuns() {
     //get pr for head sha
     const { data: pr } = await oc.rest.pulls.get(
         {
@@ -100,8 +100,8 @@ function getLastCommitRuns() {
     return ans;
 }
 
-function rerunFailedJobs(comment) {
-    const runs = getLastCommitRuns();
+async function rerunFailedJobs(comment) {
+    const runs = await getLastCommitRuns();
     for (let i = 0; i < runs.length; i++) {
         const run = runs[i];
         await oc.rest.actions.reRunWorkflowFailedJobs(
@@ -109,13 +109,13 @@ function rerunFailedJobs(comment) {
         )
     }
     let message = ">" + comment.body + "\n\n" + "All failed jobs are rerun ----- @" + admin;
-    setMessageAndEmoji(comment.id, message, "laugh");
+    await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
-function rerun(comment, commands) {
+async function rerun(comment, commands) {
     switch (commands[2]) {
         case "failed":
-            rerunFailedJobs(comment);
+            await rerunFailedJobs(comment);
             break;
 
         default:
@@ -123,15 +123,15 @@ function rerun(comment, commands) {
     }
 }
 
-function successRerun(comment, commands) {
+async function successRerun(comment, commands) {
     let message = "";
     switch (commands[1]) {
         case "rerun":
-            rerun(comment, commands);
+            await rerun(comment, commands);
             break;
         default:
             message = ">" + comment.body + "\n\n" + "This command is not support! Support: " + support + " ------@" + admin;
-            setMessageAndEmoji(comment.id, message, "confused");
+            await setMessageAndEmoji(comment.id, message, "confused");
             break;
     }
 }
@@ -159,7 +159,7 @@ function parseArray(str) {
     return ans;
 }
 
-function setMessageAndEmoji(id, message, emoji) {
+async function setMessageAndEmoji(id, message, emoji) {
     await oc.rest.issues.updateComment(
         {
             ...github.context.repo,
@@ -177,9 +177,9 @@ function setMessageAndEmoji(id, message, emoji) {
     )
 }
 
-function failedRerun(comment) {
+async function failedRerun(comment) {
     let message = ">" + comment.body + "\n\n" + "@" + comment.user.login + " You can't run this command ------ @" + admin;
-    setMessageAndEmoji(comment.id, message, "confused");
+    await setMessageAndEmoji(comment.id, message, "confused");
 
 }
 
