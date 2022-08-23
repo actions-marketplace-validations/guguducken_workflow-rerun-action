@@ -64,15 +64,6 @@ async function run() {
     }
 }
 
-function getJobs() {
-    const { data: { workflows } } = await oc.rest.actions.listRepoWorkflows(
-        {
-            ...github.context.repo
-        }
-    )
-    let jobs = new Array();
-}
-
 function getLastCommitRuns() {
     //get pr for head sha
     const { data: pr } = await oc.rest.pulls.get(
