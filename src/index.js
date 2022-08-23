@@ -15,6 +15,8 @@ async function run() {
         if (prNum === undefined) {
             core.info("This is not pull request action");
             return;
+        } else {
+            core.info(prNum);
         }
 
         //check wether user name which defined in yml equal to user which corresponding to token
@@ -46,6 +48,7 @@ async function run() {
             core.info("This comment is not " + commands[0] + ", so skip this command");
             return;
         }
+        core.info(commands);
 
         //get users of organizations
         const users_org = await getOrgMembersForAuthenticatedUser();
