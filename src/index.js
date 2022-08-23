@@ -142,27 +142,12 @@ async function rerunFailedJobs(runs) {
     }
 }
 
-async function rerunCancelledJobs(runs) {
-    for (const run of runs) {
-        if (run.status != "completed") {
-            core.info("The workflow is running, try again later");
-            continue;
-        }
-        if (run.conclusion == "cancelled") {
-            await oc.rest.actions.reRunJobForWorkflowRun({
-                ...github.context.repo,
-                job_id: job.id
-            });
-        }
-    }
-}
-
 async function rerunAllJobs(comment, runs) {
     for (const run of runs) {
-        // if (run.status != "completed") {
-        //     core.info("The workflow " + run.name + " is running, try again later");
-        //     continue;
-        // }
+        if (run.status != "completed") {
+            core.info("The workflow " + run.name + " is running, try again later");
+            continue;
+        }
         core.info("Rerun workflow: " + run.name);
         await oc.rest.actions.reRunWorkflow({
             ...github.context.repo,
@@ -170,7 +155,7 @@ async function rerunAllJobs(comment, runs) {
         });
     }
 
-    let message = ">" + comment.body + "\n\n" + "All jobs are rerun, detail for checks ----- @" + admin;
+    let message = ">" + comment.body + "\n\n" + "All jobs are rerun, detail for `checks` ----- @" + admin;
     await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
@@ -183,20 +168,12 @@ async function rerun(comment, commands) {
             await rerunAllJobs(comment, runs);
             return;
         }
-        switch (command) {
-            case "failed":
-                await rerunFailedJobs(runs);
-                reRuns.push("failed");
-                break;
-            // case "cancelled":
-            //     await rerunCancelledJobs(jobs);
-            //     reRuns.push("cancelled");
-            //     break;
-            default:
-                break;
+        if (command == "failed") {
+            await rerunFailedJobs(runs);
+            reRuns.push("failed");
         }
     }
-    let message = ">" + comment.body + "\n\n" + "All " + reRuns + " jobs are rerun ----- @" + admin;
+    let message = ">" + comment.body + "\n\n" + "All " + reRuns + " jobs are rerun, detail for `check` ----- @" + admin;
     await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
