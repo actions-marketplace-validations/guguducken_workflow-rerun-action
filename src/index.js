@@ -108,10 +108,9 @@ async function getLastCommitRuns() {
 
 async function rerunFailedJobs(comment) {
     const runs = await getLastCommitRuns();
-    for (let i = 0; i < runs.length; i++) {
-        const run = runs[i];
+    for (const run of runs) {
         await oc.rest.actions.reRunWorkflowFailedJobs(
-            ...run
+            run
         )
     }
     core.info(JSON.stringify(runs));
