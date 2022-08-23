@@ -108,7 +108,9 @@ async function getLastCommitRunJobs() {
                         name: job.name,
                         id: job.id,
                         status: job.status,
-                        conclusion: job.conclusion
+                        conclusion: job.conclusion,
+                        name_workflow: workflow.name,
+                        status_workflow: workflow.status
                     }
                 );
             }
@@ -119,7 +121,10 @@ async function getLastCommitRunJobs() {
 
 async function rerunFailedJobs(comment, jobs) {
     for (const job of jobs) {
-        core.info("All job: " + JSON.stringify(job));
+        if (job.status_workflow != "completed") {
+            core.info("The workflow run containing this job is running, try again later");
+            continue;
+        }
         if (job.status == "completed" && job.conclusion == "failure") {
             core.info("Rerun job: " + job.name);
             await oc.rest.actions.reRunJobForWorkflowRun({
@@ -132,6 +137,10 @@ async function rerunFailedJobs(comment, jobs) {
 
 async function rerunCancelledJobs(comment, jobs) {
     for (const job of jobs) {
+        if (job.status_workflow != "completed") {
+            core.info("The workflow run containing this job is running, try again later");
+            continue;
+        }
         if (job.status == "completed" && job.conclusion == "cancelled") {
             core.info("Rerun job: " + job.name);
             await oc.rest.actions.reRunJobForWorkflowRun({
@@ -144,6 +153,10 @@ async function rerunCancelledJobs(comment, jobs) {
 
 async function rerunAllJobs(comment, jobs) {
     for (const job of jobs) {
+        if (job.status_workflow != "completed") {
+            core.info("The workflow run containing this job is running, try again later");
+            continue;
+        }
         if (job.status == "completed") {
             core.info("Rerun job: " + job.name);
             await oc.rest.actions.reRunJobForWorkflowRun({
