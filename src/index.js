@@ -73,7 +73,7 @@ async function run() {
     }
 }
 
-async function getLastCommitRuns() {
+async function getLastCommitRunJobs() {
     //get pr for head sha
     const { data: pr } = await oc.rest.pulls.get(
         {
@@ -94,30 +94,38 @@ async function getLastCommitRuns() {
 
     //find workflow which corresponding to this pr
     let s = new Set();
-    let ans = new Array();
+    let jobs = new Array();
     for (const workflow of workflow_runs) {
-        // let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
         if (workflow.head_sha == sha && !s.has(workflow.name)) {
             s.add(workflow.name);
-            ans.push(workflow);
+
+            let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
+            for (const job of t.jobs) {
+                // if (job.status != "queued" && job.status != "In progress") {
+                if (true) {
+                    jobs.push(
+                        {
+                            name: job.name,
+                            id: job.id,
+                            status: job.status,
+                            conclusion: job.conclusion
+                        }
+                    );
+                }
+            }
         }
     }
-    return ans;
+    return jobs;
 }
 
 async function rerunFailedJobs(comment) {
-    const runs = await getLastCommitRuns();
-    for (const run of runs) {
-        core.info("rerun: " + JSON.stringify(run));
-        await oc.rest.actions.reRunWorkflowFailedJobs(
-            {
-                ...github.context.repo,
-                run_id: run.id,
-            }
-        )
+    const jobs = await getLastCommitRunJobs();
+    for (const job of jobs) {
+        core.info(JSON.stringify(job));
     }
-    let message = ">" + comment.body + "\n\n" + "All failed jobs are rerun ----- @" + admin;
-    await setMessageAndEmoji(comment.id, message, "laugh");
+
+    // let message = ">" + comment.body + "\n\n" + "All failed jobs are rerun ----- @" + admin;
+    // await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
 async function rerun(comment, commands) {
