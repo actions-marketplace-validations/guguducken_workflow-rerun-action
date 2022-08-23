@@ -108,7 +108,7 @@ async function rerunFailedJobs(comment) {
         await oc.rest.actions.reRunWorkflowFailedJobs(
             {
                 ...github.context.repo,
-                run_id: workflow.id,
+                run_id: run.id,
             }
         )
     }
