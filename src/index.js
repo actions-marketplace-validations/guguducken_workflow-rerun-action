@@ -75,7 +75,7 @@ async function run() {
     }
 }
 
-async function getLastCommitRunJobs() {
+async function getLastCommitRunsAndJobs() {
     //get pr for head sha
     const { data: pr } = await oc.rest.pulls.get(
         {
@@ -96,11 +96,19 @@ async function getLastCommitRunJobs() {
 
     //find workflow which corresponding to this pr
     let s = new Set();
+    let runs = new Array();
     let jobs = new Array();
     for (const workflow of workflow_runs) {
         if (workflow.head_sha == sha && !s.has(workflow.name) && workflow.name != workflow_this) {
             s.add(workflow.name);
-
+            runs.push(
+                {
+                    name: workflow.name,
+                    run_id: workflow.id,
+                    status: workflow.status,
+                    conclusion: workflow.conclusion
+                }
+            );
             let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
             for (const job of t.jobs) {
                 jobs.push(
@@ -116,17 +124,31 @@ async function getLastCommitRunJobs() {
             }
         }
     }
-    return jobs;
+    return { jobs: jobs, runs: runs };
 }
 
-async function rerunFailedJobs(jobs) {
-    for (const job of jobs) {
-        if (job.status_workflow != "completed") {
-            core.info("The workflow run, " + job.name_workflow + ", containing this job( " + job.name + " ) is running, try again later");
+async function rerunFailedJobs(runs) {
+    for (const run of runs) {
+        if (run.status != "completed") {
+            core.info("The workflow is running, try again later");
             continue;
         }
-        if (job.status == "completed" && job.conclusion == "failure") {
-            core.info("Rerun job: " + job.name);
+        if (run.conclusion == "failure") {
+            await oc.rest.actions.reRunWorkflowFailedJobs({
+                ...github.context.repo,
+                run_id: run.run_id
+            });
+        }
+    }
+}
+
+async function rerunCancelledJobs(runs) {
+    for (const run of runs) {
+        if (run.status != "completed") {
+            core.info("The workflow is running, try again later");
+            continue;
+        }
+        if (run.conclusion == "cancelled") {
             await oc.rest.actions.reRunJobForWorkflowRun({
                 ...github.context.repo,
                 job_id: job.id
@@ -135,59 +157,41 @@ async function rerunFailedJobs(jobs) {
     }
 }
 
-async function rerunCancelledJobs(jobs) {
-    for (const job of jobs) {
-        if (job.status_workflow != "completed") {
-            core.info("The workflow run, " + job.name_workflow + ", containing this job( " + job.name + " ) is running, try again later");
+async function rerunAllJobs(comment, runs) {
+    for (const run of runs) {
+        if (run.status != "completed") {
+            core.info("The workflow " + run.name + " is running, try again later");
             continue;
         }
-        if (job.status == "completed" && job.conclusion == "cancelled") {
-            core.info("Rerun job: " + job.name);
-            await oc.rest.actions.reRunJobForWorkflowRun({
-                ...github.context.repo,
-                job_id: job.id
-            });
-        }
-    }
-}
-
-async function rerunAllJobs(comment, jobs) {
-    for (const job of jobs) {
-        if (job.status_workflow != "completed") {
-            core.info("The workflow run, " + job.name_workflow + ", containing this job( " + job.name + " ) is running, try again later");
-            continue;
-        }
-        if (job.status == "completed") {
-            core.info("Rerun job: " + job.name);
-            await oc.rest.actions.reRunJobForWorkflowRun({
-                ...github.context.repo,
-                job_id: job.id
-            });
-        }
+        core.info("Rerun workflow: " + run.name);
+        await oc.rest.actions.reRunWorkflow({
+            ...github.context.repo,
+            run_id: run.run_id
+        });
     }
 
-    let message = ">" + comment.body + "\n\n" + "All jobs are rerun ----- @" + admin;
+    let message = ">" + comment.body + "\n\n" + "All jobs are rerun, detail for checks ----- @" + admin;
     await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
 async function rerun(comment, commands) {
-    const jobs = await getLastCommitRunJobs();
+    const { jobs, runs } = await getLastCommitRunsAndJobs();
     let reRuns = new Array();
     for (let i = 2; i < commands.length; i++) {
         const command = commands[i];
         if (command == "all") {
-            await rerunAllJobs(comment, jobs);
+            await rerunAllJobs(comment, runs);
             return;
         }
         switch (command) {
             case "failed":
-                await rerunFailedJobs(jobs);
+                await rerunFailedJobs(runs);
                 reRuns.push("failed");
                 break;
-            case "cancelled":
-                await rerunCancelledJobs(jobs);
-                reRuns.push("cancelled");
-                break;
+            // case "cancelled":
+            //     await rerunCancelledJobs(jobs);
+            //     reRuns.push("cancelled");
+            //     break;
             default:
                 break;
         }
