@@ -17,12 +17,12 @@ async function run() {
         }
 
         //check wether user name which defined in yml equal to user which corresponding to token
-        if (!checkCorrespoding()) {
+        if (!await checkCorrespoding()) {
             throw new Error("The user which defined in yml is not equal to user which corresponding to token");
         }
 
         //get the last comment
-        const comment = getLastComment();
+        const comment = await getLastComment();
 
         if (comment === null) {
             core.info("There is no any comments");
@@ -47,10 +47,10 @@ async function run() {
         }
 
         //get users of organizations
-        const users_org = getOrgMembersForAuthenticatedUser();
+        const users_org = await getOrgMembersForAuthenticatedUser();
 
         //get the auther of this pr
-        const auther = getAuth();
+        const auther = await getAuth();
 
 
         if (!checkPermission(comment, auther, users_org)) {
@@ -204,7 +204,7 @@ function checkPermission(comment, auther, users_org) {
     return false;
 }
 
-function getLastComment() {
+async function getLastComment() {
     const { data: comments } = await oc.rest.issues.listComments(
         {
             ...github.context.repo,
@@ -217,7 +217,7 @@ function getLastComment() {
     return comments[comments.length - 1];
 }
 
-function getAuth() {
+async function getAuth() {
     const { data: pr } = await oc.rest.pulls.get(
         {
             ...github.context.repo,
@@ -227,13 +227,13 @@ function getAuth() {
     return pr.user;
 }
 
-function checkCorrespoding() {
+async function checkCorrespoding() {
     const { data: admin_token } = await oc.rest.users.getAuthenticated();
     return admin == admin_token.login;
 }
 
 
-function getOrgMembersForAuthenticatedUser() {
+async function getOrgMembersForAuthenticatedUser() {
     //get organizations
     const { data: orgs } = await oc.rest.orgs.listForAuthenticatedUser();
 
