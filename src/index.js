@@ -53,6 +53,8 @@ async function run() {
         //get users of organizations
         const users_org = await getOrgMembersForAuthenticatedUser();
 
+        core.info(JSON.stringify(users_org));
+
         //get the auther of this pr
         const auther = await getAuth();
 
