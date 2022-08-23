@@ -108,6 +108,7 @@ async function getLastCommitRuns() {
 
 async function rerunFailedJobs(comment) {
     const runs = await getLastCommitRuns();
+    core.info(JSON.stringify(runs));
     for (const run of runs) {
         await oc.rest.actions.reRunWorkflowFailedJobs(
             {
@@ -115,7 +116,6 @@ async function rerunFailedJobs(comment) {
             }
         )
     }
-    core.info(JSON.stringify(runs));
     let message = ">" + comment.body + "\n\n" + "All failed jobs are rerun ----- @" + admin;
     await setMessageAndEmoji(comment.id, message, "laugh");
 }
