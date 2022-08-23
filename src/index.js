@@ -120,6 +120,7 @@ async function getLastCommitRunJobs() {
 async function rerunFailedJobs(comment) {
     const jobs = await getLastCommitRunJobs();
     for (const job of jobs) {
+        core.info("All job: " + JSON.stringify(job));
         if (job.status == "completed" && job.conclusion == "failure") {
             core.info("Rerun job: " + job.name);
             await oc.rest.actions.reRunJobForWorkflowRun({
