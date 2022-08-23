@@ -42,7 +42,7 @@ async function run() {
         const commands = parseArray(comment.body);
 
         //check wether commands[0] is equal to @admin
-        if (commands == null || commands.length == 0 || commands[0] != admin) {
+        if (commands == null || commands.length == 0 || commands[0] != "@" + admin) {
             core.info("This comment is not " + commands[0] + ", so skip this command");
             return;
         }
