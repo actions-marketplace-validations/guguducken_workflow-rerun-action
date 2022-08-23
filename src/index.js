@@ -119,10 +119,10 @@ async function getLastCommitRunJobs() {
     return jobs;
 }
 
-async function rerunFailedJobs(comment, jobs) {
+async function rerunFailedJobs(jobs) {
     for (const job of jobs) {
         if (job.status_workflow != "completed") {
-            core.info("The workflow run containing this job is running, try again later");
+            core.info("The workflow run, " + job.name_workflow + ", containing this job( " + job.name + " ) is running, try again later");
             continue;
         }
         if (job.status == "completed" && job.conclusion == "failure") {
@@ -135,10 +135,10 @@ async function rerunFailedJobs(comment, jobs) {
     }
 }
 
-async function rerunCancelledJobs(comment, jobs) {
+async function rerunCancelledJobs(jobs) {
     for (const job of jobs) {
         if (job.status_workflow != "completed") {
-            core.info("The workflow run containing this job is running, try again later");
+            core.info("The workflow run, " + job.name_workflow + ", containing this job( " + job.name + " ) is running, try again later");
             continue;
         }
         if (job.status == "completed" && job.conclusion == "cancelled") {
@@ -154,7 +154,7 @@ async function rerunCancelledJobs(comment, jobs) {
 async function rerunAllJobs(comment, jobs) {
     for (const job of jobs) {
         if (job.status_workflow != "completed") {
-            core.info("The workflow run containing this job is running, try again later");
+            core.info("The workflow run, " + job.name_workflow + ", containing this job( " + job.name + " ) is running, try again later");
             continue;
         }
         if (job.status == "completed") {
@@ -181,11 +181,11 @@ async function rerun(comment, commands) {
         }
         switch (command) {
             case "failed":
-                await rerunFailedJobs(comment, jobs);
+                await rerunFailedJobs(jobs);
                 reRuns.push("failed");
                 break;
             case "cancelled":
-                await rerunCancelledJobs(comment, jobs);
+                await rerunCancelledJobs(jobs);
                 reRuns.push("cancelled");
                 break;
             default:
