@@ -7,7 +7,8 @@ const admin = core.getInput("user", { required: true });
 const oc = github.getOctokit(github_token);
 
 const support = ["rerun"];
-const prNum = github.context.payload?.pull_request?.number;
+// const prNum = github.context.payload?.pull_request?.number;
+const prNum = github.context.issue.number;
 
 async function run() {
     try {
