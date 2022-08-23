@@ -98,7 +98,7 @@ async function getLastCommitRuns() {
             ans.push(
                 {
                     ...github.context.repo,
-                    run_id: workflow.run_number,
+                    run_id: workflow.id,
                 }
             );
         }
