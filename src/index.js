@@ -117,8 +117,7 @@ async function getLastCommitRunJobs() {
     return jobs;
 }
 
-async function rerunFailedJobs(comment) {
-    const jobs = await getLastCommitRunJobs();
+async function rerunFailedJobs(comment, jobs) {
     for (const job of jobs) {
         core.info("All job: " + JSON.stringify(job));
         if (job.status == "completed" && job.conclusion == "failure") {
@@ -129,20 +128,59 @@ async function rerunFailedJobs(comment) {
             });
         }
     }
+}
 
-    let message = ">" + comment.body + "\n\n" + "All failed jobs are rerun ----- @" + admin;
+async function rerunCancelledJobs(comment, jobs) {
+    for (const job of jobs) {
+        if (job.status == "completed" && job.conclusion == "cancelled") {
+            core.info("Rerun job: " + job.name);
+            await oc.rest.actions.reRunJobForWorkflowRun({
+                ...github.context.repo,
+                job_id: job.id
+            });
+        }
+    }
+}
+
+async function rerunAllJobs(comment, jobs) {
+    for (const job of jobs) {
+        if (job.status == "completed") {
+            core.info("Rerun job: " + job.name);
+            await oc.rest.actions.reRunJobForWorkflowRun({
+                ...github.context.repo,
+                job_id: job.id
+            });
+        }
+    }
+
+    let message = ">" + comment.body + "\n\n" + "All jobs are rerun ----- @" + admin;
     await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
 async function rerun(comment, commands) {
-    switch (commands[2]) {
-        case "failed":
-            await rerunFailedJobs(comment);
-            break;
-
-        default:
-            break;
+    const jobs = await getLastCommitRunJobs();
+    let reRuns = new Array();
+    for (let i = 2; i < commands.length; i++) {
+        const command = commands[i];
+        if (command == "all") {
+            await rerunAllJobs(comment, jobs);
+            return;
+        }
+        switch (command) {
+            case "failed":
+                await rerunFailedJobs(comment, jobs);
+                reRuns.push("failed");
+                break;
+            case "cancelled":
+                await rerunCancelledJobs(comment, jobs);
+                reRuns.push("cancelled");
+                break;
+            default:
+                break;
+        }
     }
+    let message = ">" + comment.body + "\n\n" + "All " + reRuns + " jobs are rerun ----- @" + admin;
+    await setMessageAndEmoji(comment.id, message, "laugh");
 }
 
 async function successRerun(comment, commands) {
