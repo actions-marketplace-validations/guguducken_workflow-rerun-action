@@ -95,12 +95,7 @@ async function getLastCommitRuns() {
     for (const workflow of workflow_runs) {
         if (workflow.head_sha == sha && !s.has(workflow.name)) {
             s.add(workflow.name);
-            ans.push(
-                {
-                    ...github.context.repo,
-                    run_id: workflow.id,
-                }
-            );
+            ans.push(workflow);
         }
     }
     return ans;
@@ -109,10 +104,11 @@ async function getLastCommitRuns() {
 async function rerunFailedJobs(comment) {
     const runs = await getLastCommitRuns();
     for (const run of runs) {
-        core.info(JSON.stringify(run));
+        core.info("rerun: " + run.name);
         await oc.rest.actions.reRunWorkflowFailedJobs(
             {
-                ...run
+                ...github.context.repo,
+                run_id: workflow.id,
             }
         )
     }
