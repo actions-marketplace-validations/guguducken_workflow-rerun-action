@@ -4,6 +4,8 @@ const http_client = require('@actions/http-client');
 
 const github_token = core.getInput("action-token", { required: true });
 const admin = core.getInput("user", { required: true });
+const name_this = core.getInput("name-this", { required: true });
+
 const http = new http_client.HttpClient(
     {
         userAgent: "workflow-rerun-action"
@@ -96,22 +98,19 @@ async function getLastCommitRunJobs() {
     let s = new Set();
     let jobs = new Array();
     for (const workflow of workflow_runs) {
-        if (workflow.head_sha == sha && !s.has(workflow.name)) {
+        if (workflow.head_sha == sha && !s.has(workflow.name) && workflow.name != name_this) {
             s.add(workflow.name);
 
             let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
             for (const job of t.jobs) {
-                // if (job.status != "queued" && job.status != "In progress") {
-                if (true) {
-                    jobs.push(
-                        {
-                            name: job.name,
-                            id: job.id,
-                            status: job.status,
-                            conclusion: job.conclusion
-                        }
-                    );
-                }
+                jobs.push(
+                    {
+                        name: job.name,
+                        id: job.id,
+                        status: job.status,
+                        conclusion: job.conclusion
+                    }
+                );
             }
         }
     }
@@ -121,7 +120,7 @@ async function getLastCommitRunJobs() {
 async function rerunFailedJobs(comment) {
     const jobs = await getLastCommitRunJobs();
     for (const job of jobs) {
-        if (job.status != "completed" && job.conclusion == "failure") {
+        if (job.status == "completed" && job.conclusion == "failure") {
             core.info("Rerun job: " + job.name);
             await oc.rest.actions.reRunJobForWorkflowRun({
                 ...github.context.repo,

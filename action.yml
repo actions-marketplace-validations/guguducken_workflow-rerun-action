@@ -7,6 +7,10 @@ inputs:
     required: true
   user:
     description: "The user which corresponding to action-token"
+    required: true
+  name-this:
+    description: "The name which corresponding this action"
+    required: true
 
 runs:
   using: "node16"
