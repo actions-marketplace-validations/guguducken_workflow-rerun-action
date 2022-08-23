@@ -4,7 +4,7 @@ const http_client = require('@actions/http-client');
 
 const github_token = core.getInput("action-token", { required: true });
 const admin = core.getInput("user", { required: true });
-const name_this = core.getInput("name-this", { required: true });
+const workflow_this = core.getInput("workflow-this", { required: true });
 
 const http = new http_client.HttpClient(
     {
@@ -98,7 +98,7 @@ async function getLastCommitRunJobs() {
     let s = new Set();
     let jobs = new Array();
     for (const workflow of workflow_runs) {
-        if (workflow.head_sha == sha && !s.has(workflow.name) && workflow.name != name_this) {
+        if (workflow.head_sha == sha && !s.has(workflow.name) && workflow.name != workflow_this) {
             s.add(workflow.name);
 
             let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());

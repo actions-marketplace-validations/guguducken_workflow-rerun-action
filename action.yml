@@ -8,7 +8,7 @@ inputs:
   user:
     description: "The user which corresponding to action-token"
     required: true
-  name-this:
+  workflow-this:
     description: "The name which corresponding this action"
     required: true
 
