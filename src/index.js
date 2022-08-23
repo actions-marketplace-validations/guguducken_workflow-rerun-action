@@ -159,10 +159,10 @@ async function rerunCancelledJobs(runs) {
 
 async function rerunAllJobs(comment, runs) {
     for (const run of runs) {
-        if (run.status != "completed") {
-            core.info("The workflow " + run.name + " is running, try again later");
-            continue;
-        }
+        // if (run.status != "completed") {
+        //     core.info("The workflow " + run.name + " is running, try again later");
+        //     continue;
+        // }
         core.info("Rerun workflow: " + run.name);
         await oc.rest.actions.reRunWorkflow({
             ...github.context.repo,
