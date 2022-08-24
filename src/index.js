@@ -23,14 +23,6 @@ async function run() {
             core.info("This is not pull request action");
             return;
         }
-        const { data: temp } = await oc.rest.actions.getWorkflowRun(
-            {
-                ...github.context.repo,
-                run_id: github.context.runId
-            }
-        );
-        core.info(github.context.sha);
-        core.info(JSON.stringify(temp));
 
         //check wether user name which defined in yml equal to user which corresponding to token
         if (!await checkCorrespoding()) {
@@ -128,7 +120,7 @@ async function getLastCommitRunsAndJobs(PR) {
                     {
                         ...github.context.repo,
                         workflow_id: workflow.id,
-                        per_page: 100,
+                        per_page: 5,
                         page: num
                     }
                 );
@@ -166,52 +158,14 @@ async function getLastCommitRunsAndJobs(PR) {
                 if (flag) {
                     break;
                 }
-                if (total_count < 100) {
+                if (total_count < 5) {
+                    core.info(workflow.name + "do not have corresponding workflow run with the last commit of this pr");
                     break;
                 }
             }
         }
     }
 
-    // //list workflows for this repository
-    // const { data: { workflow_runs } } = await oc.rest.actions.listWorkflowRunsForRepo(
-    //     {
-    //         ...github.context.repo,
-    //         per_page: 100,
-    //         page: 1
-    //     }
-    // )
-
-    // //find workflow which corresponding to this pr
-    // let s = new Set();
-    // let runs = new Array();
-    // let jobs = new Array();
-    // for (const workflow of workflow_runs) {
-    //     if (workflow.head_sha == sha && !s.has(workflow.name) && workflow.name != workflow_this) {
-    //         s.add(workflow.name);
-    //         runs.push(
-    //             {
-    //                 name: workflow.name,
-    //                 run_id: workflow.id,
-    //                 status: workflow.status,
-    //                 conclusion: workflow.conclusion
-    //             }
-    //         );
-    //         let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
-    //         for (const job of t.jobs) {
-    //             jobs.push(
-    //                 {
-    //                     name: job.name,
-    //                     id: job.id,
-    //                     status: job.status,
-    //                     conclusion: job.conclusion,
-    //                     name_workflow: workflow.name,
-    //                     status_workflow: workflow.status
-    //                 }
-    //             );
-    //         }
-    //     }
-    // }
     return { jobs: jobs, runs: runs };
 }
 
