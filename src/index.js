@@ -37,6 +37,14 @@ async function run() {
             return;
         }
 
+        let html_temp = "htts://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/issues/";
+
+        const re_issue = new RegExp(await reParse(html_temp), "igm");
+        if (re_issue.test(comment.html_url)) {
+            core.info("This workflow is triggered by issue, so skip it.");
+            return;
+        }
+
         //check wether this comment is from bot or assistant
         const re_bot = /\[bot\]/igm;
         const re_assitant = /assistant/igm;
@@ -44,8 +52,6 @@ async function run() {
             core.info("This comment is from bot or assistant");
             return;
         }
-
-        core.info(JSON.stringify(comment));
 
         //get commands from comment.body
         const commands = parseArray(comment.body);
@@ -63,7 +69,7 @@ async function run() {
         const PR = await getPR();
 
         if (PR === null) {
-            core.info("This workflow is not corresponding to a PR");
+            core.info("Get information of this pull request failed");
             return;
         }
 
@@ -76,6 +82,20 @@ async function run() {
     } catch (error) {
         core.setFailed(error.message);
     }
+}
+
+async function reParse(str) {
+    let ans = "";
+    for (let index = 0; index < str.length; index++) {
+        const e = str[index];
+        if (e == "/" || e == "{" || e == "}" || e == "[" || e == "]" ||
+            e == "(" || e == ")" || e == "^" || e == "$" || e == "+" ||
+            e == "\\" || e == "." || e == "*" || e == "|" || e == "?") {
+            ans += "\\";
+        }
+        ans += e;
+    }
+    return ans
 }
 
 async function getLastCommitRunsAndJobs(PR) {
@@ -280,14 +300,13 @@ async function getLastComment() {
 }
 
 async function getPR() {
-    core.info("start to get pr");
     const ans = await oc.rest.pulls.get(
         {
             ...github.context.repo,
             pull_number: prNum
         }
     )
-    core.info("finish get pr");
+
     if (ans.status != 200) {
         return null;
     }
