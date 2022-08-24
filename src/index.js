@@ -67,8 +67,6 @@ async function run() {
             return;
         }
 
-        core.info(JSON.stringify(PR));
-
         if (!checkPermission(comment, PR.user, users_org)) {
             await failedRerun(comment);
         } else {
@@ -178,7 +176,7 @@ async function rerunAllJobs(comment, runs) {
     }
 }
 
-async function rerun(comment, commands) {
+async function rerun(comment, commands, PR) {
     if (commands.length <= 2) {
         return;
     }
@@ -283,7 +281,7 @@ async function getLastComment() {
 
 async function getPR() {
     core.info("start to get pr");
-    const { data: PR } = await oc.rest.pulls.get(
+    const { data: PR, status: status } = await oc.rest.pulls.get(
         {
             ...github.context.repo,
             pull_number: prNum
