@@ -99,7 +99,6 @@ async function reParse(str) {
 }
 
 async function getLastCommitRunsAndJobs(PR) {
-    core.info("start getLastCommitRunsAndJobs");
     //get pr for head sha
     const sha = PR.head.sha;
 
@@ -216,7 +215,6 @@ async function rerun(comment, commands, PR) {
 }
 
 async function successRerun(comment, commands, PR) {
-    core.info("rerun start");
     switch (commands[1]) {
         case "rerun":
             await rerun(comment, commands, PR);
