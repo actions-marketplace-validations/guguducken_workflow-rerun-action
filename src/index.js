@@ -23,7 +23,14 @@ async function run() {
             core.info("This is not pull request action");
             return;
         }
+        const { data: temp } = await oc.rest.actions.getWorkflowRun(
+            {
+                ...github.context.repo,
+                run_id: github.context.runId
+            }
+        );
         core.info(github.context.sha);
+        core.info(JSON.stringify(temp));
 
         //check wether user name which defined in yml equal to user which corresponding to token
         if (!await checkCorrespoding()) {
