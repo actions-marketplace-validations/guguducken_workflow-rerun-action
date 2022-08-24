@@ -121,7 +121,7 @@ async function getLastCommitRunsAndJobs(PR) {
                     {
                         ...github.context.repo,
                         workflow_id: workflow.id,
-                        per_page: 5,
+                        per_page: 100,
                         page: num_page
                     }
                 );
@@ -131,7 +131,6 @@ async function getLastCommitRunsAndJobs(PR) {
                 }
                 num_total += workflow_runs.length;
 
-                core.info(num_total);
                 num_page++;
                 let flag = false;
                 for (const workflow_run of workflow_runs) {
@@ -167,7 +166,7 @@ async function getLastCommitRunsAndJobs(PR) {
                     break;
                 }
                 if (num_total == total_count) {
-                    core.info(workflow.name + "do not have corresponding workflow run with the last commit of this pr");
+                    core.info(workflow.name + " do not have corresponding workflow run with the last commit of this pr");
                     break;
                 }
             }
