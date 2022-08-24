@@ -102,45 +102,105 @@ async function getLastCommitRunsAndJobs(PR) {
     //get pr for head sha
     const sha = PR.head.sha;
 
-    //list workflows for this repository
-    const { data: { workflow_runs } } = await oc.rest.actions.listWorkflowRunsForRepo(
+    let runs = new Array();
+    let jobs = new Array();
+
+    const { data: workflows_all } = await oc.rest.actions.listRepoWorkflows(
         {
-            ...github.context.repo,
-            per_page: 100,
-            page: 1
+            ...github.context.repo
         }
     )
 
-    //find workflow which corresponding to this pr
-    let s = new Set();
-    let runs = new Array();
-    let jobs = new Array();
-    for (const workflow of workflow_runs) {
-        if (workflow.head_sha == sha && !s.has(workflow.name) && workflow.name != workflow_this) {
-            s.add(workflow.name);
-            runs.push(
-                {
-                    name: workflow.name,
-                    run_id: workflow.id,
-                    status: workflow.status,
-                    conclusion: workflow.conclusion
-                }
-            );
-            let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
-            for (const job of t.jobs) {
-                jobs.push(
+    for (const workflow of workflows_all.workflows) {
+        if (workflow.state == "active" && workflow.name != workflow_this) {
+            core.info("Start finding workflow, name is: " + workflow.name);
+            let num = 1;
+            while (true) {
+                const { data: { workflow_runs } } = await oc.rest.actions.listWorkflowRuns(
                     {
-                        name: job.name,
-                        id: job.id,
-                        status: job.status,
-                        conclusion: job.conclusion,
-                        name_workflow: workflow.name,
-                        status_workflow: workflow.status
+                        ...github.context.repo,
+                        workflow_id: workflow.id,
+                        per_page: 100,
+                        page: num
                     }
                 );
+                num++;
+                let flag = false;
+                for (const workflow_run of workflow_runs) {
+                    if (workflow_run.head_sha == sha) {
+                        runs.push(
+                            {
+                                name: workflow_run.name,
+                                run_id: workflow_run.id,
+                                status: workflow_run.status,
+                                conclusion: workflow_run.conclusion
+                            }
+                        );
+                        core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
+
+                        let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
+                        for (const job of t.jobs) {
+                            jobs.push(
+                                {
+                                    name: job.name,
+                                    id: job.id,
+                                    status: job.status,
+                                    conclusion: job.conclusion,
+                                    name_workflow: workflow.name,
+                                    status_workflow: workflow.status
+                                }
+                            );
+                        }
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag) {
+                    break;
+                }
             }
         }
     }
+
+    // //list workflows for this repository
+    // const { data: { workflow_runs } } = await oc.rest.actions.listWorkflowRunsForRepo(
+    //     {
+    //         ...github.context.repo,
+    //         per_page: 100,
+    //         page: 1
+    //     }
+    // )
+
+    // //find workflow which corresponding to this pr
+    // let s = new Set();
+    // let runs = new Array();
+    // let jobs = new Array();
+    // for (const workflow of workflow_runs) {
+    //     if (workflow.head_sha == sha && !s.has(workflow.name) && workflow.name != workflow_this) {
+    //         s.add(workflow.name);
+    //         runs.push(
+    //             {
+    //                 name: workflow.name,
+    //                 run_id: workflow.id,
+    //                 status: workflow.status,
+    //                 conclusion: workflow.conclusion
+    //             }
+    //         );
+    //         let t = JSON.parse(await (await http.get(workflow.jobs_url)).readBody());
+    //         for (const job of t.jobs) {
+    //             jobs.push(
+    //                 {
+    //                     name: job.name,
+    //                     id: job.id,
+    //                     status: job.status,
+    //                     conclusion: job.conclusion,
+    //                     name_workflow: workflow.name,
+    //                     status_workflow: workflow.status
+    //                 }
+    //             );
+    //         }
+    //     }
+    // }
     return { jobs: jobs, runs: runs };
 }
 
