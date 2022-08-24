@@ -125,6 +125,7 @@ async function getLastCommitRunsAndJobs(PR) {
                         page: num
                     }
                 );
+                core.info(total_count);
                 if (total_count == 0) {
                     core.info("This workflow -- " + workflow.name + " has never been run");
                     break;
