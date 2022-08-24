@@ -129,11 +129,12 @@ async function rerunFailedJobs(comment, runs) {
     let flag = true;
     for (const run of runs) {
         if (run.status != "completed") {
-            core.info("The workflow is running, try again later");
+            core.info("The workflow " + run.name + " is running, try again later");
             flag = false;
             continue;
         }
         if (run.conclusion == "failure" || run.conclusion == "cancelled") {
+            core.info("Rerun workflow: " + run.name);
             await oc.rest.actions.reRunWorkflowFailedJobs({
                 ...github.context.repo,
                 run_id: run.run_id
