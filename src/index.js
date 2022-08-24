@@ -66,9 +66,9 @@ async function run() {
 
         if (!checkPermission(comment, auther, users_org)) {
             await failedRerun(comment);
+        } else {
+            await successRerun(comment, commands);
         }
-        await successRerun(comment, commands);
-
 
     } catch (error) {
         core.setFailed(error.message);
@@ -201,14 +201,14 @@ async function rerun(comment, commands) {
 }
 
 async function successRerun(comment, commands) {
-    let message = "";
     switch (commands[1]) {
         case "rerun":
             await rerun(comment, commands);
             break;
         default:
-            message = ">" + comment.body + "\n\n" + "This command is not support! Support: " + support + " ------@" + admin;
-            await setMessageAndEmoji(comment.id, message, "confused");
+            // let message = ">" + comment.body + "\n\n" + "This command is not support! Support: " + support + " ------@" + admin;
+            // await setMessageAndEmoji(comment.id, message, "confused");
+            core.info("This is not special command, action finished");
             break;
     }
 }
