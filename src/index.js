@@ -67,6 +67,8 @@ async function run() {
             return;
         }
 
+        core.info(JSON.stringify(PR));
+
         if (!checkPermission(comment, PR.user, users_org)) {
             await failedRerun(comment);
         } else {
@@ -79,6 +81,7 @@ async function run() {
 }
 
 async function getLastCommitRunsAndJobs(PR) {
+    core.info("start getLastCommitRunsAndJobs");
     //get pr for head sha
     const sha = PR.head.sha;
 
@@ -195,6 +198,7 @@ async function rerun(comment, commands) {
 }
 
 async function successRerun(comment, commands, PR) {
+    core.info("rerun start");
     switch (commands[1]) {
         case "rerun":
             await rerun(comment, commands, PR);
