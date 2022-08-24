@@ -121,16 +121,16 @@ async function getLastCommitRunsAndJobs(PR) {
                     {
                         ...github.context.repo,
                         workflow_id: workflow.id,
-                        per_page: 100,
+                        per_page: 5,
                         page: num
                     }
                 );
                 if (total_count == 0) {
-                    core.info("This workflow -- " + workflow.name + "is never runed");
+                    core.info("This workflow -- " + workflow.name + " has never been run");
                     break;
                 }
                 if (sha_first == workflow_runs[0].head_sha) {
-                    core.info(workflow.name + "do not have corresponding workflow run with the last commit of this pr");
+                    core.info(workflow.name + " do not have corresponding workflow run with the last commit of this pr");
                     break;
                 }
                 sha_first = workflow_runs[0].head_sha;
@@ -168,7 +168,7 @@ async function getLastCommitRunsAndJobs(PR) {
                 if (flag) {
                     break;
                 }
-                if (total_count < 100) {
+                if (total_count < 5) {
                     core.info(workflow.name + "do not have corresponding workflow run with the last commit of this pr");
                     break;
                 }
