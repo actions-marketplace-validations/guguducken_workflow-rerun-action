@@ -140,7 +140,14 @@ async function rerunFailedJobs(runs) {
             });
         }
     }
-    return flag;
+    let message = ">" + comment.body + "\n\n";
+    if (flag) {
+        message += "All failed jobs are rerun ----- @" + admin;
+        await setMessageAndEmoji(comment.id, message, "laugh");
+    } else {
+        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/actions/runs/" + github.context.runId + ")  ----- @" + admin;
+        await setMessageAndEmoji(comment.id, message, "confused");
+    }
 }
 
 async function rerunAllJobs(comment, runs) {
@@ -163,7 +170,7 @@ async function rerunAllJobs(comment, runs) {
         message += "All jobs are rerun ----- @" + admin;
         await setMessageAndEmoji(comment.id, message, "laugh");
     } else {
-        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/actions/runs/" + github.context.runId + "?check_suite_focus=true)" + "  ----- @" + admin;
+        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/actions/runs/" + github.context.runId + ")  ----- @" + admin;
         await setMessageAndEmoji(comment.id, message, "confused");
     }
 }
@@ -172,29 +179,18 @@ async function rerun(comment, commands) {
     if (commands.length <= 2) {
         return;
     }
-    let flag = true;
     const { jobs, runs } = await getLastCommitRunsAndJobs();
-    let reRuns = new Array();
-    for (let i = 2; i < commands.length; i++) {
-        const command = commands[i];
-        if (command == "all") {
+    switch (commands[2]) {
+        case "all":
             await rerunAllJobs(comment, runs);
-            return;
-        }
-
-        if (command == "failed") {
-            flag &= await rerunFailedJobs(runs);
-            reRuns.push("failed");
-        }
-    }
-
-    let message = ">" + comment.body + "\n\n";
-    if (flag) {
-        message += "All " + reRuns + " jobs are rerun ----- @" + admin;
-        await setMessageAndEmoji(comment.id, message, "laugh");
-    } else {
-        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/actions/runs/" + github.context.runId + "?check_suite_focus=true)" + "  ----- @" + admin;
-        await setMessageAndEmoji(comment.id, message, "confused");
+            break;
+        case "failed":
+            await rerunFailedJobs(runs);
+            break;
+        default:
+            let message = ">" + comment.body + "\n\n" + "This command is not support! Support: " + support + " ------@" + admin;
+            await setMessageAndEmoji(comment.id, message, "confused");
+            break;
     }
 }
 
@@ -204,8 +200,6 @@ async function successRerun(comment, commands) {
             await rerun(comment, commands);
             break;
         default:
-            // let message = ">" + comment.body + "\n\n" + "This command is not support! Support: " + support + " ------@" + admin;
-            // await setMessageAndEmoji(comment.id, message, "confused");
             core.info("This is not special command, action finished");
             break;
     }
