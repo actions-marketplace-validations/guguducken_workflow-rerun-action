@@ -74,9 +74,9 @@ async function run() {
         }
 
         if (!checkPermission(comment, PR.user, users_org)) {
-            await failedRerun(comment);
+            await failed(comment);
         } else {
-            await successRerun(comment, commands, PR);
+            await success(comment, commands, PR);
         }
 
     } catch (error) {
@@ -144,8 +144,9 @@ async function getLastCommitRunsAndJobs(PR) {
     return { jobs: jobs, runs: runs };
 }
 
-async function rerunFailedJobs(comment, runs) {
+async function rerunFailedJobs(comment, runs, commands) {
     let flag = true;
+    let debug = commands[3] == "yes";
     for (const run of runs) {
         if (run.status != "completed") {
             core.info("The workflow " + run.name + " is running, try again later");
@@ -156,7 +157,8 @@ async function rerunFailedJobs(comment, runs) {
             core.info("Rerun workflow: " + run.name);
             await oc.rest.actions.reRunWorkflowFailedJobs({
                 ...github.context.repo,
-                run_id: run.run_id
+                run_id: run.run_id,
+                enable_debug_logging: debug
             });
         }
     }
@@ -170,8 +172,9 @@ async function rerunFailedJobs(comment, runs) {
     }
 }
 
-async function rerunAllJobs(comment, runs) {
+async function rerunAllJobs(comment, runs, commands) {
     let flag = true;
+    let debug = commands[3] == "yes";
     for (const run of runs) {
         if (run.status != "completed") {
             flag = false;
@@ -181,7 +184,8 @@ async function rerunAllJobs(comment, runs) {
         core.info("Rerun workflow: " + run.name);
         await oc.rest.actions.reRunWorkflow({
             ...github.context.repo,
-            run_id: run.run_id
+            run_id: run.run_id,
+            enable_debug_logging: debug
         });
     }
 
@@ -202,10 +206,10 @@ async function rerun(comment, commands, PR) {
     const { jobs, runs } = await getLastCommitRunsAndJobs(PR);
     switch (commands[2]) {
         case "all":
-            await rerunAllJobs(comment, runs);
+            await rerunAllJobs(comment, runs, commands);
             break;
         case "failed":
-            await rerunFailedJobs(comment, runs);
+            await rerunFailedJobs(comment, runs, commands);
             break;
         default:
             let message = ">" + comment.body + "\n\n" + "This command is not support! Support: " + support + " ------@" + admin;
@@ -214,7 +218,7 @@ async function rerun(comment, commands, PR) {
     }
 }
 
-async function successRerun(comment, commands, PR) {
+async function success(comment, commands, PR) {
     switch (commands[1]) {
         case "rerun":
             await rerun(comment, commands, PR);
@@ -266,7 +270,7 @@ async function setMessageAndEmoji(id, message, emoji) {
     )
 }
 
-async function failedRerun(comment) {
+async function failed(comment) {
     let message = ">" + comment.body + "\n\n" + "@" + comment.user.login + " You can't run this command ------ @" + admin;
     await setMessageAndEmoji(comment.id, message, "confused");
 
