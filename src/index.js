@@ -115,57 +115,106 @@ async function getLastCommitRunsAndJobs(PR) {
         if (workflow.state == "active" && workflow.name != workflow_this) {
             core.info("Start finding workflow, name is: " + workflow.name);
             let num_page = 1;
-            let num_total = 0;
+            let num_total_1 = 0;
+            let num_total_2 = 0;
             while (true) {
-                const { data: { total_count, workflow_runs } } = await oc.rest.actions.listWorkflowRuns(
+                const { data: { total_count: total_count_1, workflow_runs: workflow_runs_1 } } = await oc.rest.actions.listWorkflowRuns(
                     {
                         ...github.context.repo,
                         workflow_id: workflow.id,
                         per_page: 100,
-                        page: num_page
+                        page: num_page,
+                        event: "pull_request"
                     }
                 );
-                if (total_count == 0) {
+                const { data: { total_count: total_count_2, workflow_runs: workflow_runs_2 } } = await oc.rest.actions.listWorkflowRuns(
+                    {
+                        ...github.context.repo,
+                        workflow_id: workflow.id,
+                        per_page: 100,
+                        page: num_page,
+                        event: "pull_request_target"
+                    }
+                );
+                if (total_count_1 + total_count_2 == 0) {
                     core.info("This workflow -- " + workflow.name + " has never been run");
                     break;
                 }
-                num_total += workflow_runs.length;
-
                 num_page++;
                 let flag = false;
-                for (const workflow_run of workflow_runs) {
-                    if (workflow_run.head_sha == sha) {
-                        runs.push(
-                            {
-                                name: workflow_run.name,
-                                run_id: workflow_run.id,
-                                status: workflow_run.status,
-                                conclusion: workflow_run.conclusion
-                            }
-                        );
-                        core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
 
-                        let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
-                        for (const job of t.jobs) {
-                            jobs.push(
+                if (num_total_1 < total_count_1) {
+                    num_total_1 += workflow_runs_1.length;
+
+                    for (const workflow_run of workflow_runs_1) {
+                        if (workflow_run.head_sha == sha) {
+                            runs.push(
                                 {
-                                    name: job.name,
-                                    id: job.id,
-                                    status: job.status,
-                                    conclusion: job.conclusion,
-                                    name_workflow: workflow.name,
-                                    status_workflow: workflow.status
+                                    name: workflow_run.name,
+                                    run_id: workflow_run.id,
+                                    status: workflow_run.status,
+                                    conclusion: workflow_run.conclusion
                                 }
                             );
+                            core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
+
+                            let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
+                            for (const job of t.jobs) {
+                                jobs.push(
+                                    {
+                                        name: job.name,
+                                        id: job.id,
+                                        status: job.status,
+                                        conclusion: job.conclusion,
+                                        name_workflow: workflow.name,
+                                        status_workflow: workflow.status
+                                    }
+                                );
+                            }
+                            flag = true;
+                            break;
                         }
-                        flag = true;
-                        break;
                     }
                 }
+
+                if (num_total_2 < total_count_2) {
+                    num_total_2 += workflow_runs_2.length;
+
+                    for (const workflow_run of workflow_runs_2) {
+                        if (workflow_run.head_sha == sha) {
+                            runs.push(
+                                {
+                                    name: workflow_run.name,
+                                    run_id: workflow_run.id,
+                                    status: workflow_run.status,
+                                    conclusion: workflow_run.conclusion
+                                }
+                            );
+                            core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
+
+                            let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
+                            for (const job of t.jobs) {
+                                jobs.push(
+                                    {
+                                        name: job.name,
+                                        id: job.id,
+                                        status: job.status,
+                                        conclusion: job.conclusion,
+                                        name_workflow: workflow.name,
+                                        status_workflow: workflow.status
+                                    }
+                                );
+                            }
+                            flag = true;
+                            break;
+                        }
+                    }
+                }
+
                 if (flag) {
                     break;
                 }
-                if (num_total == total_count) {
+                if (num_total_1 + num_total_2 == total_count_1 + total_count_2) {
                     core.info(workflow.name + " do not have corresponding workflow run with the last commit of this pr");
                     break;
                 }
