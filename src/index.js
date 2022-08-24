@@ -81,6 +81,7 @@ async function getLastCommitRunsAndJobs() {
             pull_number: prNum
         }
     )
+    core.info(pr)
     const sha = pr.head.sha;
 
     //list workflows for this repository
