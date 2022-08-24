@@ -23,6 +23,7 @@ async function run() {
             core.info("This is not pull request action");
             return;
         }
+        core.info(github.context.sha);
 
         //check wether user name which defined in yml equal to user which corresponding to token
         if (!await checkCorrespoding()) {
