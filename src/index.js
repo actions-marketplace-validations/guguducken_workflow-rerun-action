@@ -124,10 +124,6 @@ async function getLastCommitRunsAndJobs(PR) {
                         page: num
                     }
                 );
-                core.info(workflow.name + ": " + total_count);
-                if (total_count == 0) {
-                    break;
-                }
                 num++;
                 let flag = false;
                 for (const workflow_run of workflow_runs) {
@@ -160,6 +156,9 @@ async function getLastCommitRunsAndJobs(PR) {
                     }
                 }
                 if (flag) {
+                    break;
+                }
+                if (total_count < 100) {
                     break;
                 }
             }
