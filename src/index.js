@@ -45,6 +45,8 @@ async function run() {
             return;
         }
 
+        core.info(JSON.stringify(comment));
+
         //get commands from comment.body
         const commands = parseArray(comment.body);
 
