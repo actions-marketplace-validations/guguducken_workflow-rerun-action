@@ -78,9 +78,9 @@ async function run() {
     }
 }
 
-async function getLastCommitRunsAndJobs(pr) {
+async function getLastCommitRunsAndJobs(PR) {
     //get pr for head sha
-    const sha = pr.head.sha;
+    const sha = PR.head.sha;
 
     //list workflows for this repository
     const { data: { workflow_runs } } = await oc.rest.actions.listWorkflowRunsForRepo(
@@ -279,7 +279,7 @@ async function getLastComment() {
 
 async function getPR() {
     core.info("start to get pr");
-    const { data: pr, status } = await oc.rest.pulls.get(
+    const { data: pr, status: status } = await oc.rest.pulls.get(
         {
             ...github.context.repo,
             pull_number: prNum
