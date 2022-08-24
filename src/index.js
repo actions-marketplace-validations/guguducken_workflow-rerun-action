@@ -125,7 +125,7 @@ async function getLastCommitRunsAndJobs() {
     return { jobs: jobs, runs: runs };
 }
 
-async function rerunFailedJobs(runs) {
+async function rerunFailedJobs(comment, runs) {
     let flag = true;
     for (const run of runs) {
         if (run.status != "completed") {
@@ -185,7 +185,7 @@ async function rerun(comment, commands) {
             await rerunAllJobs(comment, runs);
             break;
         case "failed":
-            await rerunFailedJobs(runs);
+            await rerunFailedJobs(comment, runs);
             break;
         default:
             let message = ">" + comment.body + "\n\n" + "This command is not support! Support: " + support + " ------@" + admin;
