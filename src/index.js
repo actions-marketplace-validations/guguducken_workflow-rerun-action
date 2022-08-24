@@ -124,6 +124,7 @@ async function getLastCommitRunsAndJobs(PR) {
                         page: num
                     }
                 );
+                core.info(workflow.name + ": " + total_count);
                 if (total_count == 0) {
                     break;
                 }
