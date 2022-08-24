@@ -279,16 +279,13 @@ async function getLastComment() {
 
 async function getPR() {
     core.info("start to get pr");
-    const { data: PR, status: status } = await oc.rest.pulls.get(
+    const { data: PR } = await oc.rest.pulls.get(
         {
             ...github.context.repo,
             pull_number: prNum
         }
     )
     core.info("finish get pr");
-    if (status != 200) {
-        return null;
-    }
     return PR;
 }
 
