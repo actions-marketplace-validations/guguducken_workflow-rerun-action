@@ -128,9 +128,11 @@ async function getLastCommitRunsAndJobs() {
 }
 
 async function rerunFailedJobs(runs) {
+    let flag = true;
     for (const run of runs) {
         if (run.status != "completed") {
             core.info("The workflow is running, try again later");
+            flag = false;
             continue;
         }
         if (run.conclusion == "failure" || run.conclusion == "cancelled") {
@@ -140,11 +142,14 @@ async function rerunFailedJobs(runs) {
             });
         }
     }
+    return flag;
 }
 
 async function rerunAllJobs(comment, runs) {
+    let flag = true;
     for (const run of runs) {
         if (run.status != "completed") {
+            flag = false;
             core.info("The workflow " + run.name + " is running, try again later");
             continue;
         }
@@ -155,11 +160,21 @@ async function rerunAllJobs(comment, runs) {
         });
     }
 
-    let message = ">" + comment.body + "\n\n" + "All jobs are rerun, detail for `checks` ----- @" + admin;
-    await setMessageAndEmoji(comment.id, message, "laugh");
+    let message = ">" + comment.body + "\n\n"
+    if (flag) {
+        message += "All jobs are rerun ----- @" + admin;
+        await setMessageAndEmoji(comment.id, message, "laugh");
+    } else {
+        message += "Some workflows were running before that, please try again later ----- @" + admin;
+        await setMessageAndEmoji(comment.id, message, "confused");
+    }
 }
 
 async function rerun(comment, commands) {
+    if (commands.length <= 2) {
+        return;
+    }
+    let flag = true;
     const { jobs, runs } = await getLastCommitRunsAndJobs();
     let reRuns = new Array();
     for (let i = 2; i < commands.length; i++) {
@@ -168,13 +183,21 @@ async function rerun(comment, commands) {
             await rerunAllJobs(comment, runs);
             return;
         }
+
         if (command == "failed") {
-            await rerunFailedJobs(runs);
+            flag &= await rerunFailedJobs(runs);
             reRuns.push("failed");
         }
     }
-    let message = ">" + comment.body + "\n\n" + "All " + reRuns + " jobs are rerun, detail for `check` ----- @" + admin;
-    await setMessageAndEmoji(comment.id, message, "laugh");
+
+    let message = ">" + comment.body + "\n\n";
+    if (flag) {
+        message += "All " + reRuns + " jobs are rerun ----- @" + admin;
+        await setMessageAndEmoji(comment.id, message, "laugh");
+    } else {
+        message += "Some workflows were running before that, please try again later ----- @" + admin;
+        await setMessageAndEmoji(comment.id, message, "confused");
+    }
 }
 
 async function successRerun(comment, commands) {
