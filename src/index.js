@@ -116,7 +116,7 @@ async function getLastCommitRunsAndJobs(PR) {
             core.info("Start finding workflow, name is: " + workflow.name);
             let num = 1;
             while (true) {
-                const { data: { workflow_runs } } = await oc.rest.actions.listWorkflowRuns(
+                const { data: { total_count, workflow_runs } } = await oc.rest.actions.listWorkflowRuns(
                     {
                         ...github.context.repo,
                         workflow_id: workflow.id,
@@ -124,6 +124,9 @@ async function getLastCommitRunsAndJobs(PR) {
                         page: num
                     }
                 );
+                if (total_count == 0) {
+                    break;
+                }
                 num++;
                 let flag = false;
                 for (const workflow_run of workflow_runs) {
