@@ -237,7 +237,7 @@ function parseArray(str) {
     let ans = new Array();
     for (let i = 0; i < str.length; i++) {
         const e = str[i];
-        if ('a' <= e && e <= 'z' || e == '@') {
+        if (e != " ") {
             t += e;
         } else {
             if (t.length != 0) {
