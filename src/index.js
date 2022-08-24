@@ -37,7 +37,7 @@ async function run() {
             return;
         }
 
-        let html_temp = "htts://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/issues/";
+        let html_temp = "https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/issues/";
 
         const re_issue = new RegExp(await reParse(html_temp), "igm");
         if (re_issue.test(comment.html_url)) {
