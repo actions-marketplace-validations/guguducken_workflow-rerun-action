@@ -163,7 +163,7 @@ async function rerunAllJobs(comment, runs) {
         message += "All jobs are rerun ----- @" + admin;
         await setMessageAndEmoji(comment.id, message, "laugh");
     } else {
-        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/runs/" + github.context.runId + "?check_suite_focus=true)" + "  ----- @" + admin;
+        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/actions/runs/" + github.context.runId + "?check_suite_focus=true)" + "  ----- @" + admin;
         await setMessageAndEmoji(comment.id, message, "confused");
     }
 }
@@ -193,7 +193,7 @@ async function rerun(comment, commands) {
         message += "All " + reRuns + " jobs are rerun ----- @" + admin;
         await setMessageAndEmoji(comment.id, message, "laugh");
     } else {
-        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/runs/" + github.context.runId + "?check_suite_focus=true)" + "  ----- @" + admin;
+        message += "Some workflows were running before that, detail for this: [action detail](https://github.com/" + github.context.repo.owner + "/" + github.context.repo.repo + "/actions/runs/" + github.context.runId + "?check_suite_focus=true)" + "  ----- @" + admin;
         await setMessageAndEmoji(comment.id, message, "confused");
     }
 }
