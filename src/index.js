@@ -8,13 +8,13 @@ const workflow_this = core.getInput("workflow-this", { required: true });
 
 const http = new http_client.HttpClient(
     {
-        userAgent: "workflow-rerun-action"
+        userAgent: "guguducken/workflow-rerun-action"
     }
 );
 
 const oc = github.getOctokit(github_token);
 
-const support = ["rerun"];
+const support = ["all", "failed"];
 const prNum = github.context.issue.number;
 
 async function run() {
@@ -31,6 +31,8 @@ async function run() {
 
         //get the last comment
         const comment = await getLastComment();
+
+        core.info(comment.body);
 
         if (comment === null) {
             core.info("There is no any comments");
