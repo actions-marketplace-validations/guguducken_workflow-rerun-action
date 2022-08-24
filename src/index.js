@@ -114,28 +114,25 @@ async function getLastCommitRunsAndJobs(PR) {
     for (const workflow of workflows_all.workflows) {
         if (workflow.state == "active" && workflow.name != workflow_this) {
             core.info("Start finding workflow, name is: " + workflow.name);
-            let num = 1;
-            let sha_first = "";
+            let num_page = 1;
+            let num_total = 0;
             while (true) {
                 const { data: { total_count, workflow_runs } } = await oc.rest.actions.listWorkflowRuns(
                     {
                         ...github.context.repo,
                         workflow_id: workflow.id,
                         per_page: 5,
-                        page: num
+                        page: num_page
                     }
                 );
-                core.info(total_count);
                 if (total_count == 0) {
                     core.info("This workflow -- " + workflow.name + " has never been run");
                     break;
                 }
-                if (sha_first == workflow_runs[0].head_sha) {
-                    core.info(workflow.name + " do not have corresponding workflow run with the last commit of this pr");
-                    break;
-                }
-                sha_first = workflow_runs[0].head_sha;
-                num++;
+                num_total += workflow_runs.length;
+
+                core.info(num_total);
+                num_page++;
                 let flag = false;
                 for (const workflow_run of workflow_runs) {
                     if (workflow_run.head_sha == sha) {
@@ -169,7 +166,7 @@ async function getLastCommitRunsAndJobs(PR) {
                 if (flag) {
                     break;
                 }
-                if (total_count < 5) {
+                if (num_total == total_count) {
                     core.info(workflow.name + "do not have corresponding workflow run with the last commit of this pr");
                     break;
                 }
