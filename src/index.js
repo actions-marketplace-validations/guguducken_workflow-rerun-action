@@ -15,7 +15,6 @@ const http = new http_client.HttpClient(
 const oc = github.getOctokit(github_token);
 
 const support = ["rerun"];
-// const prNum = github.context.payload?.pull_request?.number;
 const prNum = github.context.issue.number;
 
 async function run() {
@@ -75,13 +74,15 @@ async function run() {
 
 async function getLastCommitRunsAndJobs() {
     //get pr for head sha
-    const { data: pr } = await oc.rest.pulls.get(
+    const { data: pr, status } = await oc.rest.pulls.get(
         {
             ...github.context.repo,
             pull_number: prNum
         }
     )
-    core.info(pr)
+    if (status != 200) {
+        core.info("There is not PR");
+    }
     const sha = pr.head.sha;
 
     //list workflows for this repository
