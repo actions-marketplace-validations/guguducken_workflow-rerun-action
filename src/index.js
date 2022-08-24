@@ -32,8 +32,6 @@ async function run() {
         //get the last comment
         const comment = await getLastComment();
 
-        core.info(comment.body);
-
         if (comment === null) {
             core.info("There is no any comments");
             return;
@@ -60,13 +58,17 @@ async function run() {
         const users_org = await getOrgMembersForAuthenticatedUser();
 
         //get the auther of this pr
-        const auther = await getAuth();
+        const PR = await getPR();
 
+        if (PR === null) {
+            core.info("This workflow is not corresponding to a PR");
+            return;
+        }
 
-        if (!checkPermission(comment, auther, users_org)) {
+        if (!checkPermission(comment, PR.user, users_org)) {
             await failedRerun(comment);
         } else {
-            await successRerun(comment, commands);
+            await successRerun(comment, commands, PR);
         }
 
     } catch (error) {
@@ -74,17 +76,8 @@ async function run() {
     }
 }
 
-async function getLastCommitRunsAndJobs() {
+async function getLastCommitRunsAndJobs(pr) {
     //get pr for head sha
-    const { data: pr, status } = await oc.rest.pulls.get(
-        {
-            ...github.context.repo,
-            pull_number: prNum
-        }
-    )
-    if (status != 200) {
-        core.info("There is not PR");
-    }
     const sha = pr.head.sha;
 
     //list workflows for this repository
@@ -184,7 +177,7 @@ async function rerun(comment, commands) {
     if (commands.length <= 2) {
         return;
     }
-    const { jobs, runs } = await getLastCommitRunsAndJobs();
+    const { jobs, runs } = await getLastCommitRunsAndJobs(PR);
     switch (commands[2]) {
         case "all":
             await rerunAllJobs(comment, runs);
@@ -199,10 +192,10 @@ async function rerun(comment, commands) {
     }
 }
 
-async function successRerun(comment, commands) {
+async function successRerun(comment, commands, PR) {
     switch (commands[1]) {
         case "rerun":
-            await rerun(comment, commands);
+            await rerun(comment, commands, PR);
             break;
         default:
             core.info("This is not special command, action finished");
@@ -282,14 +275,17 @@ async function getLastComment() {
     return comments[comments.length - 1];
 }
 
-async function getAuth() {
-    const { data: pr } = await oc.rest.pulls.get(
+async function getPR() {
+    const { data: pr, status } = await oc.rest.pulls.get(
         {
             ...github.context.repo,
             pull_number: prNum
         }
     )
-    return pr.user;
+    if (status != 200) {
+        return null;
+    }
+    return pr;
 }
 
 async function checkCorrespoding() {
