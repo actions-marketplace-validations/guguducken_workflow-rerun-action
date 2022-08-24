@@ -23,8 +23,6 @@ async function run() {
         if (prNum === undefined) {
             core.info("This is not pull request action");
             return;
-        } else {
-            core.info(prNum);
         }
 
         //check wether user name which defined in yml equal to user which corresponding to token
@@ -265,7 +263,6 @@ function checkPermission(comment, auther, users_org) {
         return true;
     }
     for (const user of users_org) {
-        core.info(user.login);
         if (comment.user.login == user.login) {
             return true;
         }
