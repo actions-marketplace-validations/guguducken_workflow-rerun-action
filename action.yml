@@ -1,5 +1,5 @@
-name: "Rerun Workflow"
-description: "Rerun Workflow"
+name: "Command Rerun Workflow"
+description: "Use command to rerun workflow"
 
 inputs:
   action-token:
