@@ -30,7 +30,8 @@ async function run() {
         }
 
         //get the last comment
-        const comment = await getLastComment();
+        // const comment = await getLastComment();
+        const comment = github.context.payload.comment;
 
         if (comment === null) {
             core.info("There is no any comments");
