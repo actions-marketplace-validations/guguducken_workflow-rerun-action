@@ -160,19 +160,6 @@ async function getLastCommitRunsAndJobs(PR) {
                             );
                             core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
 
-                            // let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
-                            // for (const job of t.jobs) {
-                            //     jobs.push(
-                            //         {
-                            //             name: job.name,
-                            //             id: job.id,
-                            //             status: job.status,
-                            //             conclusion: job.conclusion,
-                            //             name_workflow: workflow.name,
-                            //             status_workflow: workflow.status
-                            //         }
-                            //     );
-                            // }
                             flag = true;
                             break;
                         }
@@ -194,19 +181,6 @@ async function getLastCommitRunsAndJobs(PR) {
                             );
                             core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
 
-                            // let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
-                            // for (const job of t.jobs) {
-                            //     jobs.push(
-                            //         {
-                            //             name: job.name,
-                            //             id: job.id,
-                            //             status: job.status,
-                            //             conclusion: job.conclusion,
-                            //             name_workflow: workflow.name,
-                            //             status_workflow: workflow.status
-                            //         }
-                            //     );
-                            // }
                             flag = true;
                             break;
                         }
@@ -217,7 +191,7 @@ async function getLastCommitRunsAndJobs(PR) {
                     core.info("------------------------------------------------------------------------------------------------------------------------------------");
                     break;
                 }
-                if (num_total_1 + num_total_2 == total_count_1 + total_count_2) {
+                if (num_total_1 == total_count_1 && num_total_2 == total_count_2) {
                     core.info(workflow.name + " do not have corresponding workflow run with the last commit of this pr");
                     core.info("------------------------------------------------------------------------------------------------------------------------------------");
                     break;
