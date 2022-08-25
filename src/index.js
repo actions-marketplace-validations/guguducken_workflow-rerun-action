@@ -30,7 +30,6 @@ async function run() {
         }
 
         //get the last comment
-        // const comment = await getLastComment();
         const comment = github.context.payload.comment;
 
         if (comment === null) {
@@ -100,6 +99,7 @@ async function reParse(str) {
 }
 
 async function getLastCommitRunsAndJobs(PR) {
+    core.info("---------------------- Start Find Workflows ----------------------");
     //get pr for head sha
     const sha = PR.head.sha;
 
@@ -138,7 +138,7 @@ async function getLastCommitRunsAndJobs(PR) {
                     }
                 );
                 if (total_count_1 + total_count_2 == 0) {
-                    core.info("This workflow -- " + workflow.name + " has never been run");
+                    core.info("This workflow ---- " + workflow.name + " has never been run with this commit of this pr");
                     break;
                 }
                 num_page++;
@@ -159,26 +159,26 @@ async function getLastCommitRunsAndJobs(PR) {
                             );
                             core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
 
-                            let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
-                            for (const job of t.jobs) {
-                                jobs.push(
-                                    {
-                                        name: job.name,
-                                        id: job.id,
-                                        status: job.status,
-                                        conclusion: job.conclusion,
-                                        name_workflow: workflow.name,
-                                        status_workflow: workflow.status
-                                    }
-                                );
-                            }
+                            // let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
+                            // for (const job of t.jobs) {
+                            //     jobs.push(
+                            //         {
+                            //             name: job.name,
+                            //             id: job.id,
+                            //             status: job.status,
+                            //             conclusion: job.conclusion,
+                            //             name_workflow: workflow.name,
+                            //             status_workflow: workflow.status
+                            //         }
+                            //     );
+                            // }
                             flag = true;
                             break;
                         }
                     }
                 }
 
-                if (num_total_2 < total_count_2) {
+                if (!flag && num_total_2 < total_count_2) {
                     num_total_2 += workflow_runs_2.length;
 
                     for (const workflow_run of workflow_runs_2) {
@@ -193,19 +193,19 @@ async function getLastCommitRunsAndJobs(PR) {
                             );
                             core.info("Find the workflow run: " + JSON.stringify(runs[runs.length - 1]));
 
-                            let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
-                            for (const job of t.jobs) {
-                                jobs.push(
-                                    {
-                                        name: job.name,
-                                        id: job.id,
-                                        status: job.status,
-                                        conclusion: job.conclusion,
-                                        name_workflow: workflow.name,
-                                        status_workflow: workflow.status
-                                    }
-                                );
-                            }
+                            // let t = JSON.parse(await (await http.get(workflow_run.jobs_url)).readBody());
+                            // for (const job of t.jobs) {
+                            //     jobs.push(
+                            //         {
+                            //             name: job.name,
+                            //             id: job.id,
+                            //             status: job.status,
+                            //             conclusion: job.conclusion,
+                            //             name_workflow: workflow.name,
+                            //             status_workflow: workflow.status
+                            //         }
+                            //     );
+                            // }
                             flag = true;
                             break;
                         }
@@ -213,10 +213,12 @@ async function getLastCommitRunsAndJobs(PR) {
                 }
 
                 if (flag) {
+                    core.info("------------------------------------------------------------------");
                     break;
                 }
                 if (num_total_1 + num_total_2 == total_count_1 + total_count_2) {
                     core.info(workflow.name + " do not have corresponding workflow run with the last commit of this pr");
+                    core.info("------------------------------------------------------------------");
                     break;
                 }
             }
@@ -368,19 +370,6 @@ function checkPermission(comment, auther, users_org) {
         }
     }
     return false;
-}
-
-async function getLastComment() {
-    const { data: comments } = await oc.rest.issues.listComments(
-        {
-            ...github.context.repo,
-            issue_number: prNum
-        }
-    )
-    if (comments.length == 0) {
-        return null;
-    }
-    return comments[comments.length - 1];
 }
 
 async function getPR() {
