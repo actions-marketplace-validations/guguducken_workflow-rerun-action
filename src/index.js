@@ -99,7 +99,7 @@ async function reParse(str) {
 }
 
 async function getLastCommitRunsAndJobs(PR) {
-    core.info("-------------------------------------------- Start Find Workflows --------------------------------------------");
+    core.info("------------------------------------------------------- Start Find Workflows -------------------------------------------------------");
     //get pr for head sha
     const sha = PR.head.sha;
 
@@ -231,6 +231,7 @@ async function getLastCommitRunsAndJobs(PR) {
 
 async function rerunFailedJobs(comment, runs, commands) {
     let flag = true;
+    core.info("--------------------------------------------------- Start Rerun Failed Workflows ---------------------------------------------------");
     let debug = commands[3] == "yes";
     for (const run of runs) {
         if (run.status != "completed") {
@@ -259,6 +260,7 @@ async function rerunFailedJobs(comment, runs, commands) {
 
 async function rerunAllJobs(comment, runs, commands) {
     let flag = true;
+    core.info("----------------------------------------------------- Start Rerun All Workflows ----------------------------------------------------");
     let debug = commands[3] == "yes";
     for (const run of runs) {
         if (run.status != "completed") {
