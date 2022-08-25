@@ -99,7 +99,7 @@ async function reParse(str) {
 }
 
 async function getLastCommitRunsAndJobs(PR) {
-    core.info("---------------------- Start Find Workflows ----------------------");
+    core.info("-------------------------------------------- Start Find Workflows --------------------------------------------");
     //get pr for head sha
     const sha = PR.head.sha;
 
@@ -139,6 +139,7 @@ async function getLastCommitRunsAndJobs(PR) {
                 );
                 if (total_count_1 + total_count_2 == 0) {
                     core.info("This workflow ---- " + workflow.name + " has never been run with this commit of this pr");
+                    core.info("------------------------------------------------------------------------------------------------------------------------------------");
                     break;
                 }
                 num_page++;
@@ -213,12 +214,12 @@ async function getLastCommitRunsAndJobs(PR) {
                 }
 
                 if (flag) {
-                    core.info("------------------------------------------------------------------");
+                    core.info("------------------------------------------------------------------------------------------------------------------------------------");
                     break;
                 }
                 if (num_total_1 + num_total_2 == total_count_1 + total_count_2) {
                     core.info(workflow.name + " do not have corresponding workflow run with the last commit of this pr");
-                    core.info("------------------------------------------------------------------");
+                    core.info("------------------------------------------------------------------------------------------------------------------------------------");
                     break;
                 }
             }
